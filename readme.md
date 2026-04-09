@@ -4,64 +4,50 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.x-red.svg)](https://pytorch.org/)
 
-A cleaned, publication-oriented public release for **CONCIL**, including the original project structure, paper assets, and a **cleaned reproduction script** that consolidates local bug fixes discovered during replication.
+This repository is a **public, reproduction-oriented release** of **CONCIL**.
 
 > **Learning New Concepts, Remembering the Old: Continual Learning for Multimodal Concept Bottleneck Models**
 
-| [**Paper (PDF)**](https://arxiv.org/pdf/2411.17471) | [**Project Page**](https://xll0328.github.io/concil/) | [**Repository**](https://github.com/xll0328/MM25-CONCIL) |
+It contains:
+
+- the original project structure and experiment scripts,
+- paper figures and visualization assets,
+- and a cleaned reproduction entry `reproduce_concil.py` that consolidates local bug fixes found during replication.
+
+If your goal is to **reproduce the project from scratch**, this README is written as a step-by-step guide.
+
+---
+
+## Links
+
+| Paper | Project Page | Repository |
 |:---:|:---:|:---:|
-| [arXiv](https://arxiv.org/pdf/2411.17471) | [xll0328.github.io/concil](https://xll0328.github.io/concil/) | [GitHub](https://github.com/xll0328/MM25-CONCIL) |
+| [arXiv PDF](https://arxiv.org/pdf/2411.17471) | [xll0328.github.io/concil](https://xll0328.github.io/concil/) | [GitHub](https://github.com/xll0328/MM25-CONCIL) |
 
 ---
 
-## At a glance
+## 1. Which code entry should I use?
 
-- **Problem:** continual learning for concept bottleneck models when both concepts and classes expand over time
-- **Method:** analytic, recursive updates for concept and class layers
-- **Code paths:** original experiment scripts + cleaned `reproduce_concil.py`
-- **Datasets:** CUB-200-2011 and AwA2
-- **Status:** public release is paper-aligned, with representative local reproduction results included in the README discussion
+### Recommended for new users
 
----
+- `reproduce_concil.py`
 
-## Quick start
+Use this first. It is the cleanest public reproduction path in this repo.
 
-### 1. Install dependencies
+### Older/original project scripts
 
-```bash
-conda create -n concil python=3.8
-conda activate concil
-pip install -r requirements.txt
-```
+- `src/experiments/CONCIL_1114.py`
+- `src/experiments/CONCIL.py`
+- `src/experiments/CONCIL_1111.py`
+- `command/*.sh`
 
-### 2. Configure dataset paths
-
-```bash
-cp src/utils/data_path.example.yml src/utils/data_path.yml
-```
-
-Then edit `src/utils/data_path.yml` for your local machine.
-
-### 3. Run the cleaned reproduction entry
-
-```bash
-python reproduce_concil.py \
-  -dataset cub \
-  -base_ckpt /path/to/CUB.pth \
-  -saved_dir results/concil_repro_cub \
-  -batch_size 64 \
-  -num_stages 2 \
-  -class_ratio 0.5 \
-  -concept_ratio 0.5 \
-  -buffer_size 25000 \
-  -gg1 500 \
-  -gg2 1 \
-  -seed 42
-```
+These are kept for completeness and historical continuity, but for first-time reproduction you should start from `reproduce_concil.py`.
 
 ---
 
-## Paper alignment snapshot
+## 2. Current paper alignment snapshot
+
+Representative retained local reproduction results are:
 
 | Setting | Metric | Paper | Local reproduction |
 |---|---:|---:|---:|
@@ -74,265 +60,195 @@ Interpretation:
 
 - **CUB** is aligned and in the retained run some metrics are higher than the paper table.
 - **AwA concept accuracy** is aligned/slightly higher.
-- **AwA class accuracy** is slightly below the paper value in the currently retained local run.
+- **AwA class accuracy** is slightly below the paper value in the retained run.
+
+So the current public release is best described as:
+
+> a paper-aligned public code release with a cleaned reproduction path.
 
 ---
 
-## Important note on this release
+## 3. Environment setup
 
-This repository contains:
-
-- the original project structure used for the CONCIL paper codebase,
-- the paper figures and experiment scripts,
-- and a **cleaned reproduction script** `reproduce_concil.py` that consolidates local fixes made during reproduction.
-
-So this release should be understood as a **cleaned public version of the CONCIL project code and reproduction workflow**, rather than a claim that every file is an untouched historical snapshot.
-
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Task: CICIL](#task-cicil)
-- [Method: CONCIL](#method-concil)
-- [Repository Highlights](#repository-highlights)
-- [Paper Alignment and Reproduction Status](#paper-alignment-and-reproduction-status)
-- [Environment](#environment)
-- [Project Structure](#project-structure)
-- [Dataset Preparation](#dataset-preparation)
-- [Configuration](#configuration)
-- [Training and Evaluation](#training-and-evaluation)
-- [Metrics](#metrics)
-- [Citation](#citation)
-- [License](#license)
-
----
-
-## Overview
-
-**CONCIL** (**Con**ceptual **C**ontinual **I**ncremental **L**earning) is a continual learning framework for **Concept Bottleneck Models (CBMs)** under a setting where both **classes** and **concepts** expand over time.
-
-It targets **Concept-Incremental and Class-Incremental Continual Learning (CICIL)**:
-
-- new classes arrive over phases,
-- new concepts become visible over phases,
-- the model must preserve previously learned concept and class knowledge,
-- and catastrophic forgetting should be minimized.
-
-Core properties of CONCIL:
-
-- **Gradient-free analytic updates** for concept and decision layers
-- **Recursive matrix updates** using only current-phase data and summary statistics
-- **No need to retain all historical raw data**
-- **Strong stability-plasticity tradeoff** in continual concept/class learning
-
-Datasets used in this project:
-
-- **CUB-200-2011**: 200 classes, 116 concepts used here
-- **AwA2**: 50 classes, 85 concepts
-
----
-
-## Task: CICIL
-
-CONCIL studies **Concept-Incremental and Class-Incremental Continual Learning (CICIL)** for CBMs.
-
-<p align="center">
-  <img src="figures/intro-figure.png" width="85%" alt="CICIL task setting" />
-</p>
-<p align="center"><em>Each phase introduces new classes and expands the accessible concept set.</em></p>
-
-At phase \(t\):
-
-- the model receives current-task data only,
-- class space grows,
-- concept space grows,
-- previous knowledge must be retained.
-
-The CBM includes:
-
-- a concept extractor \(g\),
-- and a classifier \(f\),
-
-with both concept dimension and class space expanding over phases.
-
----
-
-## Method: CONCIL
-
-CONCIL has two major stages:
-
-<p align="center">
-  <img src="figures/framework.png" width="95%" alt="CONCIL framework" />
-</p>
-<p align="center"><em>Base training followed by continual analytic updates.</em></p>
-
-1. **Base training**
-   - Jointly train backbone, concept layer, and classifier
-   - Freeze the backbone afterward
-
-2. **Continual analytic updates**
-   - Update the concept layer via recursive regularized regression
-   - Update the classifier via recursive linear regression
-   - Expand concept and class dimensions as new tasks arrive
-
-Paper hyperparameters include:
-
-- \(\lambda_1 = 500\)
-- \(\lambda_2 = 1\)
-- feature expansion dimension \(d_{z^*} = 25000\)
-- concept expansion dimension \(d_{\hat{c}^*} = 25000\)
-
----
-
-## Repository Highlights
-
-This release contains both the original project layout and the cleaned reproduction pathway.
-
-### Main files
-
-- `reproduce_concil.py`: cleaned reproduction script with consolidated fixes
-- `src/experiments/CONCIL_1114.py`: original experiment entry used in the project
-- `run_concil_example.sh`: minimal example runner
-- `command/CONCIL_cub_exp.sh`, `command/CONCIL_awa_exp.sh`: batch scripts
-
-### Visual assets
-
-- `figures/`: README and paper figures
-- `VISUAL/`: additional plots and notebooks
-
-### Config
-
-- `src/utils/data_path.example.yml`: example path template
-- `src/utils/data_path.yml`: local machine-specific config, kept out of version control
-
----
-
-## Paper Alignment and Reproduction Status
-
-During local reproduction, a cleaned script `reproduce_concil.py` was created to consolidate bug fixes and path fixes.
-
-The script documents fixes such as:
-
-- local path correction,
-- checkpoint path cleanup,
-- `concept_ratio` bug fixes,
-- metric computation fixes,
-- stage-1 forgetting edge-case fix,
-- concept prediction evaluation correction.
-
-Representative local reproduction summaries showed the following phase-2 values:
-
-- **CUB 2-stage**: concept accuracy `0.8237`, class accuracy `0.7033`
-- **AwA 2-stage**: concept accuracy `0.9716`, class accuracy `0.8543`
-
-Compared with the paper table:
-
-- **CUB reproduction is aligned and in some metrics higher**
-- **AwA concept accuracy is aligned/slightly higher**
-- **AwA class accuracy is slightly below the paper number in the currently retained local run**
-
-Therefore, the current public release should be described as:
-
-> a paper-aligned CONCIL code release with a cleaned reproduction path and representative local replication results.
-
----
-
-## Environment
-
-Recommended environment:
-
-- Python 3.8+
-- PyTorch
-- torchvision
-- transformers
-- PyYAML
-- tqdm
-- matplotlib
-- Pillow
-
-Install:
+### 3.1 Create environment
 
 ```bash
 conda create -n concil python=3.8
 conda activate concil
+```
+
+### 3.2 Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-Run commands from the repository root.
+### 3.3 Always run from repository root
 
----
-
-## Project Structure
-
-```text
-.
-├── command/                        # Experiment shell scripts
-├── figures/                        # README/paper figures
-├── reproduce_concil.py             # Cleaned reproduction script
-├── run_concil_example.sh           # Example run entry
-├── src/
-│   ├── analytic/                   # Recursive analytic modules
-│   ├── data/                       # Dataset wrappers and auxiliary CSVs
-│   ├── experiments/                # Original project experiment scripts
-│   ├── models/
-│   ├── processing/                 # Dataset preprocessing
-│   └── utils/                      # Config and utilities
-├── VISUAL/                         # Additional plots and notebooks
-├── requirements.txt
-├── LICENSE
-└── readme.md
+```bash
+cd MM25-CONCIL
 ```
 
 ---
 
-## Dataset Preparation
+## 4. Dataset preparation from scratch
 
-1. Download datasets:
-   - **CUB-200-2011**
-   - **AwA2**
+This project uses:
 
-2. Preprocess from repository root:
+- **CUB-200-2011**
+- **AwA2 (Animals with Attributes 2)**
+
+A recommended local layout is:
+
+```text
+MM25-CONCIL/
+├── source_data/
+│   ├── CUB_200_2011/
+│   └── Animals_with_Attributes2/
+└── processed_data/
+    ├── cub_processed_data/
+    └── awa_processed_data/
+```
+
+You do not have to use this exact layout, but it is the easiest one to follow.
+
+### 4.1 Download CUB-200-2011
+
+Place the official dataset under:
+
+```text
+source_data/CUB_200_2011
+```
+
+The preprocessing script expects the standard CUB structure, including:
+
+- `images/`
+- `images.txt`
+- `train_test_split.txt`
+- `attributes/image_attribute_labels.txt`
+
+### 4.2 Download AwA2
+
+Place the dataset under:
+
+```text
+source_data/Animals_with_Attributes2
+```
+
+The preprocessing script expects files such as:
+
+- `JPEGImages/`
+- `classes.txt`
+- `predicate-matrix-binary.txt`
+
+---
+
+## 5. Preprocess the datasets
+
+### 5.1 Preprocess CUB
 
 ```bash
 python src/processing/cub_data_processing.py \
   -save_dir processed_data/cub_processed_data \
   -data_dir source_data/CUB_200_2011
+```
 
+This produces:
+
+- `processed_data/cub_processed_data/train.pkl`
+- `processed_data/cub_processed_data/test.pkl`
+- `processed_data/cub_processed_data/attribute_map.pkl`
+
+Important note: the CUB preprocessing script filters the original 312 attributes and keeps only attributes with at least 500 positive instances in the training set. That is why this project uses **116 concepts** for CUB.
+
+### 5.2 Preprocess AwA2
+
+```bash
 python src/processing/awa_data_processing.py \
   -save_dir processed_data/awa_processed_data \
   -data_dir source_data/Animals_with_Attributes2
 ```
 
-This produces processed dataset files used by the experiment scripts.
+This produces:
+
+- `processed_data/awa_processed_data/train.pkl`
+- `processed_data/awa_processed_data/test.pkl`
+
+Important note: the AwA preprocessing script uses class-level binary predicate vectors and performs a 50/50 random split per class with seed 42.
 
 ---
 
-## Configuration
+## 6. Configure dataset paths
 
-Copy the example config first:
+After preprocessing, create the local path config:
 
 ```bash
 cp src/utils/data_path.example.yml src/utils/data_path.yml
 ```
 
-Then edit dataset paths for your own machine.
+Then edit `src/utils/data_path.yml`.
 
-Example entries are provided for:
+Example:
 
-- `cub`
-- `awa`
-- `cebab`
-- `imdb`
+```yaml
+cub:
+  processed_dir: /absolute/path/to/MM25-CONCIL/processed_data/cub_processed_data
+  source_dir: /absolute/path/to/MM25-CONCIL/source_data/CUB_200_2011
+
+awa:
+  processed_dir: /absolute/path/to/MM25-CONCIL/processed_data/awa_processed_data
+  source_dir: /absolute/path/to/MM25-CONCIL/source_data/Animals_with_Attributes2
+```
+
+Recommended: use **absolute paths** to avoid path bugs.
 
 ---
 
-## Training and Evaluation
+## 7. Base checkpoint preparation
 
-> **Recommended entry for new users:** start from `reproduce_concil.py`.  
-> The older scripts under `src/experiments/` are preserved for completeness and historical continuity.
+This is the part most users miss.
 
-### Recommended cleaned reproduction entry
+### 7.1 Why you need it
+
+`reproduce_concil.py` requires:
+
+- `-base_ckpt /path/to/checkpoint.pth`
+
+CONCIL’s continual stage starts from a pretrained base model, then performs analytic continual updates.
+
+### 7.2 What to provide
+
+You need a base checkpoint compatible with the chosen dataset:
+
+- CUB run -> CUB base checkpoint
+- AwA run -> AwA base checkpoint
+
+In the original local project, these were stored in locations like:
+
+- `base_model/CUB/CUB.pth`
+- `base_mode_awal/.../AWA.pth`
+
+### 7.3 If you do not have a checkpoint
+
+The repository includes:
+
+- `src/experiments/CONCIL_base_train.py`
+
+But note that this file explicitly says:
+
+> `NOT THE FINAL CODE USED IN THE PROJECT.`
+
+So the most reliable current public reproduction route is:
+
+1. preprocess data,
+2. prepare a compatible base checkpoint,
+3. run `reproduce_concil.py`.
+
+---
+
+## 8. Run the cleaned reproduction pipeline
+
+### 8.1 Minimal CUB example
 
 ```bash
 python reproduce_concil.py \
@@ -349,46 +265,181 @@ python reproduce_concil.py \
   -seed 42
 ```
 
-### Example runner
+### 8.2 Minimal AwA example
 
 ```bash
-bash run_concil_example.sh
-```
-
-### Original experiment script path
-
-```bash
-python src/experiments/CONCIL_1114.py \
-  -dataset cub \
-  -num_stages 8 \
+python reproduce_concil.py \
+  -dataset awa \
+  -base_ckpt /path/to/AWA.pth \
+  -saved_dir results/concil_repro_awa \
+  -batch_size 64 \
+  -num_stages 2 \
+  -class_ratio 0.5 \
+  -concept_ratio 0.5 \
   -buffer_size 25000 \
-  -saved_dir results/concil_cub
+  -gg1 500 \
+  -gg2 1 \
+  -seed 42
 ```
 
-### Batch scripts
+---
+
+## 9. Meaning of the main arguments
+
+- `-dataset`: `cub` or `awa`
+- `-base_ckpt`: pretrained base model checkpoint
+- `-saved_dir`: output directory
+- `-batch_size`: batch size
+- `-num_stages`: number of continual phases
+- `-class_ratio`: initial visible class ratio in phase 1
+- `-concept_ratio`: initial visible concept ratio in phase 1
+- `-buffer_size`: expansion buffer size
+- `-gg1`: concept-layer regularization
+- `-gg2`: class-layer regularization
+- `-seed`: random seed
+- `-num_workers`: dataloader workers
+
+Paper-style values used in this repo include:
+
+- `class_ratio = 0.5`
+- `concept_ratio = 0.5`
+- `buffer_size = 25000`
+- `gg1 = 500`
+- `gg2 = 1`
+
+---
+
+## 10. Output files you should expect
+
+After a successful run, you should see timestamped outputs such as:
+
+- `run.log`
+- `overall_summary.csv`
+- `stage_1_metrics.csv`
+- `stage_2_metrics.csv`
+- ...
+
+If these files are produced, your run most likely completed correctly.
+
+---
+
+## 11. How to reproduce multi-stage paper-style experiments
+
+The repo keeps the original shell scripts for multi-stage sweeps.
+
+### CUB sweep
 
 ```bash
 bash command/CONCIL_cub_exp.sh
+```
+
+This loops over:
+
+- `gg1 = 500`
+- `gg2 = 1`
+- `buffer_size = 25000`
+- `num_stages = 2 3 4 5 6 7 8 9 10`
+
+### AwA sweep
+
+```bash
 bash command/CONCIL_awa_exp.sh
+```
+
+This loops over the same sweep pattern for AwA.
+
+### Hyperparameter sweep
+
+```bash
 bash command/CONCIL_tc_11_14.sh
+```
+
+This explores multiple values of:
+
+- `gg1`
+- `gg2`
+- fixed `buffer_size = 25000`
+- fixed `num_stages = 3`
+
+---
+
+## 12. Recommended route for first-time users
+
+If you are reproducing this project for the first time, do this exact order:
+
+1. Create environment
+2. Install requirements
+3. Download raw CUB and/or AwA2
+4. Preprocess datasets
+5. Copy and edit `src/utils/data_path.yml`
+6. Prepare a compatible base checkpoint
+7. Run a **2-stage** experiment first
+8. Check `overall_summary.csv`
+9. Only then try larger stage sweeps
+
+This order avoids most reproduction failures.
+
+---
+
+## 13. Common pitfalls
+
+### Pitfall 1: `src/utils/data_path.yml` does not exist
+
+Fix:
+
+```bash
+cp src/utils/data_path.example.yml src/utils/data_path.yml
+```
+
+### Pitfall 2: raw dataset folder names do not match expectations
+
+Use:
+
+- `source_data/CUB_200_2011`
+- `source_data/Animals_with_Attributes2`
+
+### Pitfall 3: wrong checkpoint path
+
+`reproduce_concil.py` will fail immediately if `-base_ckpt` is wrong.
+
+### Pitfall 4: running outside repository root
+
+Always run commands after:
+
+```bash
+cd MM25-CONCIL
+```
+
+### Pitfall 5: assuming `CONCIL_base_train.py` is the final polished public base-training script
+
+It is useful as a reference, but not the cleanest supported public entry.
+
+---
+
+## 14. Project structure
+
+```text
+.
+├── command/                        # Original batch scripts
+├── figures/                        # README / paper figures
+├── reproduce_concil.py             # Cleaned reproduction entry
+├── run_concil_example.sh           # Example run wrapper
+├── src/
+│   ├── analytic/                   # Recursive analytic modules
+│   ├── data/                       # Dataset wrappers and auxiliary CSVs
+│   ├── experiments/                # Original project experiment scripts
+│   ├── models/
+│   ├── processing/                 # Dataset preprocessing scripts
+│   └── utils/                      # Config and utility code
+├── VISUAL/                         # Visualization assets and notebooks
+├── requirements.txt
+├── LICENSE
+└── readme.md
 ```
 
 ---
 
-## Metrics
-
-The project reports four main continual learning metrics:
-
-- **Average concept accuracy**
-- **Average class accuracy**
-- **Average concept forgetting rate**
-- **Average class forgetting rate**
-
-Higher accuracies and lower forgetting rates indicate better continual performance.
-
----
-
-## Citation
+## 15. Citation
 
 ```bibtex
 @inproceedings{lai2025learning,
@@ -401,6 +452,6 @@ Higher accuracies and lower forgetting rates indicate better continual performan
 
 ---
 
-## License
+## 16. License
 
 This project is licensed under the **MIT License**. See `LICENSE` for details.
