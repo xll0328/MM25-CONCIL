@@ -4,13 +4,77 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.x-red.svg)](https://pytorch.org/)
 
-A cleaned, publication-oriented code release for **CONCIL** together with a reproduction script that consolidates local bug fixes discovered during replication.
+A cleaned, publication-oriented public release for **CONCIL**, including the original project structure, paper assets, and a **cleaned reproduction script** that consolidates local bug fixes discovered during replication.
 
 > **Learning New Concepts, Remembering the Old: Continual Learning for Multimodal Concept Bottleneck Models**
 
 | [**Paper (PDF)**](https://arxiv.org/pdf/2411.17471) | [**Project Page**](https://xll0328.github.io/concil/) | [**Repository**](https://github.com/xll0328/MM25-CONCIL) |
 |:---:|:---:|:---:|
 | [arXiv](https://arxiv.org/pdf/2411.17471) | [xll0328.github.io/concil](https://xll0328.github.io/concil/) | [GitHub](https://github.com/xll0328/MM25-CONCIL) |
+
+---
+
+## At a glance
+
+- **Problem:** continual learning for concept bottleneck models when both concepts and classes expand over time
+- **Method:** analytic, recursive updates for concept and class layers
+- **Code paths:** original experiment scripts + cleaned `reproduce_concil.py`
+- **Datasets:** CUB-200-2011 and AwA2
+- **Status:** public release is paper-aligned, with representative local reproduction results included in the README discussion
+
+---
+
+## Quick start
+
+### 1. Install dependencies
+
+```bash
+conda create -n concil python=3.8
+conda activate concil
+pip install -r requirements.txt
+```
+
+### 2. Configure dataset paths
+
+```bash
+cp src/utils/data_path.example.yml src/utils/data_path.yml
+```
+
+Then edit `src/utils/data_path.yml` for your local machine.
+
+### 3. Run the cleaned reproduction entry
+
+```bash
+python reproduce_concil.py \
+  -dataset cub \
+  -base_ckpt /path/to/CUB.pth \
+  -saved_dir results/concil_repro_cub \
+  -batch_size 64 \
+  -num_stages 2 \
+  -class_ratio 0.5 \
+  -concept_ratio 0.5 \
+  -buffer_size 25000 \
+  -gg1 500 \
+  -gg2 1 \
+  -seed 42
+```
+
+---
+
+## Paper alignment snapshot
+
+| Setting | Metric | Paper | Local reproduction |
+|---|---:|---:|---:|
+| CUB 2-stage | Avg concept acc | 0.8233 | 0.8237 |
+| CUB 2-stage | Avg class acc | 0.6287 | 0.7033 |
+| AwA 2-stage | Avg concept acc | 0.9708 | 0.9716 |
+| AwA 2-stage | Avg class acc | 0.8739 | 0.8543 |
+
+Interpretation:
+
+- **CUB** is aligned and in the retained run some metrics are higher than the paper table.
+- **AwA concept accuracy** is aligned/slightly higher.
+- **AwA class accuracy** is slightly below the paper value in the currently retained local run.
 
 ---
 
@@ -264,6 +328,9 @@ Example entries are provided for:
 ---
 
 ## Training and Evaluation
+
+> **Recommended entry for new users:** start from `reproduce_concil.py`.  
+> The older scripts under `src/experiments/` are preserved for completeness and historical continuity.
 
 ### Recommended cleaned reproduction entry
 
