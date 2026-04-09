@@ -216,19 +216,36 @@ This is the part most users miss.
 
 CONCIL’s continual stage starts from a pretrained base model, then performs analytic continual updates.
 
-### 7.2 What to provide
+### 7.2 Important fact about this public repository
+
+This public repository **does not currently ship the original pretrained base checkpoints**.
+
+In other words, after cloning this repo you should **not** expect files like these to already exist locally:
+
+- `base_model/CUB/CUB.pth`
+- `base_mode_awal/.../AWA.pth`
+
+Those paths existed in the original local development environment, but they are **not included in the public GitHub release**.
+
+### 7.3 What you need to provide
 
 You need a base checkpoint compatible with the chosen dataset:
 
 - CUB run -> CUB base checkpoint
 - AwA run -> AwA base checkpoint
 
-In the original local project, these were stored in locations like:
+### 7.4 If you already have a compatible checkpoint
 
-- `base_model/CUB/CUB.pth`
-- `base_mode_awal/.../AWA.pth`
+Use it directly:
 
-### 7.3 If you do not have a checkpoint
+```bash
+python reproduce_concil.py \
+  -dataset cub \
+  -base_ckpt /path/to/your/CUB_checkpoint.pth \
+  -saved_dir results/concil_repro_cub
+```
+
+### 7.5 If you do not have a checkpoint
 
 The repository includes:
 
@@ -238,11 +255,32 @@ But note that this file explicitly says:
 
 > `NOT THE FINAL CODE USED IN THE PROJECT.`
 
-So the most reliable current public reproduction route is:
+So the most honest and reliable current statement is:
+
+- this repository contains the reference/base-training variant,
+- but the cleanest fully supported public path currently assumes that you already have a compatible base checkpoint.
+
+### 7.6 Practical recommendation
+
+If your goal is successful reproduction with the fewest surprises, use this route:
 
 1. preprocess data,
-2. prepare a compatible base checkpoint,
-3. run `reproduce_concil.py`.
+2. prepare or obtain a compatible base checkpoint,
+3. run `reproduce_concil.py`,
+4. validate the 2-stage result first,
+5. then scale to more stages.
+
+### 7.7 What remains to be improved in future cleanup
+
+A future repository cleanup could make reproduction even easier by adding one of these:
+
+- a polished official base-training script,
+- released pretrained checkpoints,
+- or a separate checkpoint download section.
+
+For the current release, however, the correct expectation is:
+
+> the repo gives you the full continual-learning code path, dataset preprocessing path, and reproduction entry, but **base checkpoints must currently be supplied by the user**.
 
 ---
 
