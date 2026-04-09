@@ -5,6 +5,10 @@
 # Local path config (copy from data_path.example.yml and edit)
 src/utils/data_path.yml
 
+# Experiment outputs
+/results/
+/results_*/
+
 # Model checkpoints and weights
 *.pth
 *.pt
@@ -36,4 +40,3 @@ build/
 # OS
 .DS_Store
 Thumbs.db
-
